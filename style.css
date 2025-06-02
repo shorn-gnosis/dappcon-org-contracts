@@ -1,0 +1,115 @@
+body {
+    font-family: sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    background-color: #f0f0f0;
+}
+
+h1 {
+    margin-bottom: 20px;
+}
+
+.controls {
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+#userInfo {
+    font-size: 0.9em;
+    color: #555;
+    min-height: 1.2em; /* Prevent layout shift */
+}
+
+.grid-container {
+    display: grid;
+    /* grid-template-columns: repeat(100, 5px); */
+    /* grid-template-rows: repeat(100, 5px); */
+    /* Dynamically set via JS based on GRID_SIZE */
+    width: 500px; /* Fixed width for the container */
+    height: 500px; /* Fixed height for the container */
+    border: 1px solid #ccc;
+    margin-bottom: 20px;
+    background-color: #e0e0e0; /* Default background for empty pixels */
+}
+
+.pixel {
+    /* width: 5px; */
+    /* height: 5px; */
+    /* Dynamically set via JS */
+    border: 0px; /* No border between pixels initially */
+    /* background-color: #e0e0e0; */ /* Set default via container */
+    cursor: pointer;
+    transition: transform 0.1s ease-in-out;
+}
+
+.pixel:hover {
+    transform: scale(1.5);
+    outline: 1px solid black;
+    z-index: 10;
+}
+
+.pixel-info {
+    border: 1px solid #ccc;
+    padding: 15px;
+    background-color: #fff;
+    min-width: 300px;
+    text-align: left;
+}
+
+.pixel-info p {
+    margin: 5px 0;
+    word-wrap: break-word;
+}
+
+.pixel-info span {
+    font-weight: bold;
+}
+
+.pixel-info a {
+    color: blue;
+    text-decoration: underline;
+}
+
+.color-preview {
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    border: 1px solid #000;
+    vertical-align: middle;
+    margin-right: 5px;
+}
+
+#purchaseSection label,
+#updateSection label {
+    display: inline-block;
+    margin-top: 10px;
+    margin-right: 5px;
+}
+
+#purchaseSection input[type="color"],
+#updateSection input[type="color"] {
+    vertical-align: middle;
+}
+
+#purchaseSection input[type="url"],
+#updateSection input[type="url"] {
+    width: 90%;
+    margin-top: 5px;
+    margin-bottom: 10px;
+}
+
+#purchaseSection button,
+#updateSection button {
+    margin-top: 10px;
+    padding: 8px 15px;
+    cursor: pointer;
+}
+
+#purchaseStatus,
+#updateStatus {
+    margin-top: 10px;
+    font-style: italic;
+    color: #888;
+}

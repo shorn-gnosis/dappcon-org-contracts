@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Circles Pixel Grid</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>Circles Pixel Grid</h1>
+
+    <div class="controls">
+        <button id="connectButton">Connect Metri Wallet</button>
+        <p id="userInfo"></p>
+    </div>
+
+    <div id="gridContainer" class="grid-container">
+        <!-- Pixels will be generated here by JavaScript -->
+    </div>
+
+    <div id="pixelInfo" class="pixel-info">
+        <p>Click on a pixel to see details or purchase.</p>
+        <div id="pixelDetails" style="display: none;">
+            <p>Coords: <span id="pixelCoords"></span></p>
+            <p>Owner: <span id="pixelOwner"></span></p>
+            <p>Color: <span id="pixelColorPreview" class="color-preview"></span> <span id="pixelColorValue"></span></p>
+            <p>Link: <a id="pixelLink" href="#" target="_blank" rel="noopener noreferrer"></a></p>
+            <div id="purchaseSection" style="display: none;">
+                <label for="colorPicker">Choose Color:</label>
+                <input type="color" id="colorPicker" value="#ffffff"><br>
+                <label for="linkInput">Link URL (Optional):</label>
+                <input type="url" id="linkInput" placeholder="https://example.com"><br>
+                <button id="purchaseButton">Purchase Pixel (100 CRC)</button>
+                <p id="purchaseStatus"></p>
+            </div>
+             <div id="updateSection" style="display: none;">
+                <label for="updateColorPicker">Update Color:</label>
+                <input type="color" id="updateColorPicker"><br>
+                <label for="updateLinkInput">Update Link URL:</label>
+                <input type="url" id="updateLinkInput"><br>
+                <button id="updateButton">Update Pixel</button>
+                <p id="updateStatus"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Include ethers.js (or viem) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
