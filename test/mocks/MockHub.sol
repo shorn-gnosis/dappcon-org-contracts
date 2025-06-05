@@ -14,8 +14,8 @@ contract MockHub is IERC1155 {
     // simulating the user -> hub -> receiver flow.
     function simulateTransferToReceiver(
         address _from, // The original user sending CRC
-        address _to,   // The target contract (e.g., PixelGrid)
-        uint256 _id,   // CRC Token ID
+        address _to, // The target contract (e.g., PixelGrid)
+        uint256 _id, // CRC Token ID
         uint256 _value,
         bytes calldata _data
     ) external {
@@ -36,17 +36,14 @@ contract MockHub is IERC1155 {
             _value,
             _data
         );
-        require(
-            result == IERC1155Receiver.onERC1155Received.selector,
-            "MockHub: Invalid receiver response"
-        );
+        require(result == IERC1155Receiver.onERC1155Received.selector, "MockHub: Invalid receiver response");
     }
 
     // Implement the IERC1155 safeTransferFrom needed by PixelGrid to forward/refund
     // This will be called *by* the PixelGrid contract.
     function safeTransferFrom(
         address _from, // Should be the PixelGrid contract address
-        address _to,   // Owner or original buyer (for refunds)
+        address _to, // Owner or original buyer (for refunds)
         uint256 _id,
         uint256 _amount,
         bytes calldata /*_data*/
@@ -60,16 +57,23 @@ contract MockHub is IERC1155 {
     }
 
     // Mock registerOrganization
-    function registerOrganization(string calldata /*_name*/, bytes32 /*_metadataDigest*/) external {
+    function registerOrganization(string calldata, /*_name*/ bytes32 /*_metadataDigest*/ ) external {
         isOrgRegistered[msg.sender] = true; // Mark the calling contract as registered
     }
 
     // --- Unused IERC1155 functions (required by interface) ---
-    function safeBatchTransferFrom(address, address, uint256[] calldata, uint256[] calldata, bytes calldata) external override {}
-    function balanceOf(address, uint256) external view override returns (uint256) { return 0; } // Implement if needed for specific tests
-    function balanceOfBatch(address[] calldata, uint256[] calldata) external view override returns (uint256[] memory) {}
-    function setApprovalForAll(address, bool) external override {}
-    function isApprovedForAll(address, address) external view override returns (bool) { return true; } // Assume approval for simplicity
+    function safeBatchTransferFrom(address, address, uint256[] calldata, uint256[] calldata, bytes calldata) external {}
+
+    function balanceOf(address, uint256) external view returns (uint256) {
+        return 0;
+    } // Implement if needed for specific tests
+
+    function balanceOfBatch(address[] calldata, uint256[] calldata) external view returns (uint256[] memory) {}
+    function setApprovalForAll(address, bool) external {}
+
+    function isApprovedForAll(address, address) external view returns (bool) {
+        return true;
+    } // Assume approval for simplicity
 
     // Helper to mint mock tokens for testing
     function mint(address _to, uint256 _id, uint256 _amount) external {

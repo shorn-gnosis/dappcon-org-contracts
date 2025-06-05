@@ -4,13 +4,9 @@ pragma solidity ^0.8.20;
 /* ========== INTERFACES ========== */
 
 interface IERC1155Receiver {
-    function onERC1155Received(
-        address operator,
-        address from,
-        uint256 id,
-        uint256 value,
-        bytes calldata data
-    ) external returns (bytes4);
+    function onERC1155Received(address operator, address from, uint256 id, uint256 value, bytes calldata data)
+        external
+        returns (bytes4);
 
     function onERC1155BatchReceived(
         address operator,
@@ -22,31 +18,18 @@ interface IERC1155Receiver {
 }
 
 interface IERC721Receiver {
-    function onERC721Received(
-        address operator,
-        address from,
-        uint256 tokenId,
-        bytes calldata data
-    ) external returns (bytes4);
+    function onERC721Received(address operator, address from, uint256 tokenId, bytes calldata data)
+        external
+        returns (bytes4);
 }
 
 interface IERC1155 {
-    function safeTransferFrom(
-        address from,
-        address to,
-        uint256 id,
-        uint256 amount,
-        bytes calldata data
-    ) external;
+    function safeTransferFrom(address from, address to, uint256 id, uint256 amount, bytes calldata data) external;
 }
 
 interface IERC721 {
-    function safeTransferFrom(
-        address from,
-        address to,
-        uint256 tokenId
-    ) external;
-    
+    function safeTransferFrom(address from, address to, uint256 tokenId) external;
+
     function ownerOf(uint256 tokenId) external view returns (address);
 }
 
@@ -74,19 +57,19 @@ contract NFTSellerNoArgs is IERC1155Receiver, IERC721Receiver {
 
     // Hub / trust
     address public hubAddress;
-    bool    public isRegistered;
+    bool public isRegistered;
     address public trustedAddress;
 
     // The derived ERC1155 token ID
     uint256 public acceptedId;
 
     // Offer constraints
-    string  public orgName;
+    string public orgName;
     uint256 public offerStart;
     uint256 public offerEnd;
     uint256 public offerPrice;
-    bool    public oncePerUser;
-    bool    public oncePerDay;
+    bool public oncePerUser;
+    bool public oncePerDay;
     address public requireTrustedBy; // was 'requiredTruster'
 
     // NFT reward
@@ -94,7 +77,7 @@ contract NFTSellerNoArgs is IERC1155Receiver, IERC721Receiver {
     uint256[] public availableTokenIds;
 
     // Usage tracking
-    mapping(address => bool)    public usedOnce;
+    mapping(address => bool) public usedOnce;
     mapping(address => uint256) public lastUsage;
 
     // ---------- Events ----------
@@ -174,12 +157,12 @@ contract NFTSellerNoArgs is IERC1155Receiver, IERC721Receiver {
         bool _oncePerUser,
         bool _oncePerDay
     ) external onlyOwner {
-        offerStart       = _offerStart;
-        offerEnd         = _offerEnd;
-        offerPrice       = _offerPrice;
+        offerStart = _offerStart;
+        offerEnd = _offerEnd;
+        offerPrice = _offerPrice;
         requireTrustedBy = _requireTrustedBy;
-        oncePerUser      = _oncePerUser;
-        oncePerDay       = _oncePerDay;
+        oncePerUser = _oncePerUser;
+        oncePerDay = _oncePerDay;
     }
 
     function transferOwnership(address newOwner) external onlyOwner {
@@ -200,7 +183,7 @@ contract NFTSellerNoArgs is IERC1155Receiver, IERC721Receiver {
     // ---------- ERC1155 Receiving (Single) ----------
 
     function onERC1155Received(
-        address /*operator*/,
+        address, /*operator*/
         address from,
         uint256 id, // No longer checked against acceptedId
         uint256 value,
@@ -227,7 +210,7 @@ contract NFTSellerNoArgs is IERC1155Receiver, IERC721Receiver {
     // ---------- ERC1155 Receiving (Batch) ----------
 
     function onERC1155BatchReceived(
-        address /*operator*/,
+        address, /*operator*/
         address from,
         uint256[] calldata ids,
         uint256[] calldata values,
@@ -255,12 +238,7 @@ contract NFTSellerNoArgs is IERC1155Receiver, IERC721Receiver {
             // refund entire batch
             for (uint256 i = 0; i < ids.length; i++) {
                 IERC1155(msg.sender).safeTransferFrom(address(this), from, ids[i], values[i], "");
-                emit CRCRefunded(
-                    from,
-                    ids[i],
-                    values[i],
-                    (!ok) ? reason : "Insufficient total CRC"
-                );
+                emit CRCRefunded(from, ids[i], values[i], (!ok) ? reason : "Insufficient total CRC");
             }
             return this.onERC1155BatchReceived.selector;
         }
@@ -290,12 +268,12 @@ contract NFTSellerNoArgs is IERC1155Receiver, IERC721Receiver {
         try IERC721(nftContract).safeTransferFrom(address(this), from, nftTokenId) {
             // Success - remove token from available list
             availableTokenIds.pop();
-            
+
             // Forward CRC to owner
             for (uint256 i = 0; i < ids.length; i++) {
                 IERC1155(msg.sender).safeTransferFrom(address(this), owner, ids[i], values[i], "");
             }
-            
+
             emit NFTRewarded(from, nftTokenId);
             emit OfferClaimed(from, acceptedId, totalAmount);
         } catch {
@@ -306,43 +284,38 @@ contract NFTSellerNoArgs is IERC1155Receiver, IERC721Receiver {
             if (oncePerDay) {
                 lastUsage[from] = 0;
             }
-            
+
             // Refund CRC
             for (uint256 i = 0; i < ids.length; i++) {
                 IERC1155(msg.sender).safeTransferFrom(address(this), from, ids[i], values[i], "");
                 emit CRCRefunded(from, ids[i], values[i], "NFT transfer failed");
             }
         }
-        
+
         return this.onERC1155BatchReceived.selector;
     }
 
     // ---------- ERC721 Receiving ----------
 
-    function onERC721Received(
-        address /*operator*/,
-        address from,
-        uint256 tokenId,
-        bytes calldata /*data*/
-    ) external override returns (bytes4) {
+    function onERC721Received(address, /*operator*/ address from, uint256 tokenId, bytes calldata /*data*/ )
+        external
+        override
+        returns (bytes4)
+    {
         // Only accept NFTs from the owner or if the contract is the NFT contract
         require(from == owner || msg.sender == nftContract, "Only owner can deposit NFTs");
-        
+
         // Add the token ID to available tokens
         availableTokenIds.push(tokenId);
-        
+
         emit NFTDeposited(from, tokenId);
-        
+
         return this.onERC721Received.selector;
     }
 
     // ---------- Internal Claim Checking ----------
 
-    function _checkClaim(address user, uint256 totalAmount)
-        internal
-        view
-        returns (bool, string memory)
-    {
+    function _checkClaim(address user, uint256 totalAmount) internal view returns (bool, string memory) {
         if (!isRegistered) {
             return (false, "Not registered");
         }
@@ -376,12 +349,7 @@ contract NFTSellerNoArgs is IERC1155Receiver, IERC721Receiver {
         return (true, "");
     }
 
-    function _executeClaim(
-        address from,
-        address hubSender,
-        uint256 tokenId,
-        uint256 value
-    ) internal {
+    function _executeClaim(address from, address hubSender, uint256 tokenId, uint256 value) internal {
         // Check if there are available NFTs
         if (availableTokenIds.length == 0) {
             // No NFTs available, refund
@@ -405,10 +373,10 @@ contract NFTSellerNoArgs is IERC1155Receiver, IERC721Receiver {
         try IERC721(nftContract).safeTransferFrom(address(this), from, nftTokenId) {
             // Success - remove token from available list
             availableTokenIds.pop();
-            
+
             // Forward CRC to owner
             IERC1155(hubSender).safeTransferFrom(address(this), owner, tokenId, value, "");
-            
+
             emit NFTRewarded(from, nftTokenId);
             emit OfferClaimed(from, tokenId, value);
         } catch {
@@ -419,7 +387,7 @@ contract NFTSellerNoArgs is IERC1155Receiver, IERC721Receiver {
             if (oncePerDay) {
                 lastUsage[from] = 0;
             }
-            
+
             // Refund CRC
             IERC1155(hubSender).safeTransferFrom(address(this), from, tokenId, value, "");
             emit CRCRefunded(from, tokenId, value, "NFT transfer failed");
@@ -428,9 +396,7 @@ contract NFTSellerNoArgs is IERC1155Receiver, IERC721Receiver {
 
     // ---------- ERC165 ----------
     function supportsInterface(bytes4 interfaceId) external pure returns (bool) {
-        return
-            interfaceId == type(IERC1155Receiver).interfaceId ||
-            interfaceId == type(IERC721Receiver).interfaceId ||
-            interfaceId == 0x01ffc9a7; // ERC165 Interface ID
+        return interfaceId == type(IERC1155Receiver).interfaceId || interfaceId == type(IERC721Receiver).interfaceId
+            || interfaceId == 0x01ffc9a7; // ERC165 Interface ID
     }
 }

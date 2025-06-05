@@ -4,13 +4,9 @@ pragma solidity ^0.8.20;
 /* ========== INTERFACES ========== */
 
 interface IERC1155Receiver {
-    function onERC1155Received(
-        address operator,
-        address from,
-        uint256 id,
-        uint256 value,
-        bytes calldata data
-    ) external returns (bytes4);
+    function onERC1155Received(address operator, address from, uint256 id, uint256 value, bytes calldata data)
+        external
+        returns (bytes4);
 
     function onERC1155BatchReceived(
         address operator,
@@ -22,13 +18,7 @@ interface IERC1155Receiver {
 }
 
 interface IERC1155 {
-    function safeTransferFrom(
-        address from,
-        address to,
-        uint256 id,
-        uint256 amount,
-        bytes calldata data
-    ) external;
+    function safeTransferFrom(address from, address to, uint256 id, uint256 amount, bytes calldata data) external;
 }
 
 interface IERC20 {
@@ -62,19 +52,19 @@ contract ERC20SellerNoArgs is IERC1155Receiver {
 
     // Hub / trust
     address public hubAddress;
-    bool    public isRegistered;
+    bool public isRegistered;
     address public trustedAddress;
 
     // The derived ERC1155 token ID
     uint256 public acceptedId;
 
     // Offer constraints
-    string  public orgName;
+    string public orgName;
     uint256 public offerStart;
     uint256 public offerEnd;
     uint256 public offerPrice;
-    bool    public oncePerUser;
-    bool    public oncePerDay;
+    bool public oncePerUser;
+    bool public oncePerDay;
     address public requireTrustedBy; // was 'requiredTruster'
 
     // Reward
@@ -82,7 +72,7 @@ contract ERC20SellerNoArgs is IERC1155Receiver {
     uint256 public rewardAmount;
 
     // Usage tracking
-    mapping(address => bool)    public usedOnce;
+    mapping(address => bool) public usedOnce;
     mapping(address => uint256) public lastUsage;
 
     // ---------- Events ----------
@@ -145,16 +135,16 @@ contract ERC20SellerNoArgs is IERC1155Receiver {
         bool _oncePerUser,
         bool _oncePerDay
     ) external onlyOwner {
-        offerStart       = _offerStart;
-        offerEnd         = _offerEnd;
-        offerPrice       = _offerPrice;
+        offerStart = _offerStart;
+        offerEnd = _offerEnd;
+        offerPrice = _offerPrice;
         requireTrustedBy = _requireTrustedBy;
-        oncePerUser      = _oncePerUser;
-        oncePerDay       = _oncePerDay;
+        oncePerUser = _oncePerUser;
+        oncePerDay = _oncePerDay;
     }
 
     function configureRewardToken(address _rewardToken, uint256 _rewardAmount) external onlyOwner {
-        rewardToken  = _rewardToken;
+        rewardToken = _rewardToken;
         rewardAmount = _rewardAmount;
     }
 
@@ -172,13 +162,11 @@ contract ERC20SellerNoArgs is IERC1155Receiver {
 
     // ---------- ERC1155 Receiving (Single) ----------
 
-    function onERC1155Received(
-        address /*operator*/,
-        address from,
-        uint256 id,
-        uint256 value,
-        bytes calldata /*data*/
-    ) external override returns (bytes4) {
+    function onERC1155Received(address, /*operator*/ address from, uint256 id, uint256 value, bytes calldata /*data*/ )
+        external
+        override
+        returns (bytes4)
+    {
         // Must come from hub
         if (msg.sender != hubAddress) {
             IERC1155(msg.sender).safeTransferFrom(address(this), from, id, value, "");
@@ -201,7 +189,7 @@ contract ERC20SellerNoArgs is IERC1155Receiver {
     // ---------- ERC1155 Receiving (Batch) ----------
 
     function onERC1155BatchReceived(
-        address /*operator*/,
+        address, /*operator*/
         address from,
         uint256[] calldata ids,
         uint256[] calldata values,
@@ -237,12 +225,7 @@ contract ERC20SellerNoArgs is IERC1155Receiver {
             // refund entire batch
             for (uint256 i = 0; i < ids.length; i++) {
                 IERC1155(msg.sender).safeTransferFrom(address(this), from, ids[i], values[i], "");
-                emit CRCRefunded(
-                    from,
-                    ids[i],
-                    values[i],
-                    (!ok) ? reason : "Insufficient total CRC"
-                );
+                emit CRCRefunded(from, ids[i], values[i], (!ok) ? reason : "Insufficient total CRC");
             }
             return this.onERC1155BatchReceived.selector;
         }
@@ -282,11 +265,7 @@ contract ERC20SellerNoArgs is IERC1155Receiver {
 
     // ---------- Internal Claim Checking ----------
 
-    function _checkClaim(address user, uint256 totalAmount)
-        internal
-        view
-        returns (bool, string memory)
-    {
+    function _checkClaim(address user, uint256 totalAmount) internal view returns (bool, string memory) {
         if (!isRegistered) {
             return (false, "Not registered");
         }
@@ -322,12 +301,7 @@ contract ERC20SellerNoArgs is IERC1155Receiver {
         return (true, "");
     }
 
-    function _executeClaim(
-        address from,
-        address hubSender,
-        uint256 tokenId,
-        uint256 value
-    ) internal {
+    function _executeClaim(address from, address hubSender, uint256 tokenId, uint256 value) internal {
         if (oncePerUser) {
             usedOnce[from] = true;
         }
@@ -357,9 +331,7 @@ contract ERC20SellerNoArgs is IERC1155Receiver {
 
     // ---------- ERC165 ----------
     function supportsInterface(bytes4 interfaceId) external pure returns (bool) {
-        return
-            interfaceId == type(IERC1155Receiver).interfaceId ||
-            interfaceId == 0x01ffc9a7; 
+        return interfaceId == type(IERC1155Receiver).interfaceId || interfaceId == 0x01ffc9a7;
     }
 }
 
@@ -369,14 +341,12 @@ contract ERC20SellerNoArgs is IERC1155Receiver {
 struct SellerParams {
     string orgName;
     address trustedAddr;
-
     uint256 offerStart;
     uint256 offerEnd;
     uint256 offerPrice;
     address requireTrustedBy;
     bool oncePerUser;
     bool oncePerDay;
-
     address rewardToken;
     uint256 rewardAmount;
 }
@@ -402,21 +372,21 @@ contract ERC20SellerFactory {
     }
 
     /**
-     * @dev One-click default. 
+     * @dev One-click default.
      */
     function createWithDefaultSeller() external returns (address) {
         // Hard-coded defaults
         SellerParams memory p;
-        p.orgName        = "Selling 5 USDC for 100 CRC";
-        p.trustedAddr    = 0x42cEDde51198D1773590311E2A340DC06B24cB37;
-        p.offerStart     = block.timestamp;
-        p.offerEnd       = block.timestamp + (100 * 365 days);
-        p.offerPrice     = 100e18;
+        p.orgName = "Selling 5 USDC for 100 CRC";
+        p.trustedAddr = 0x42cEDde51198D1773590311E2A340DC06B24cB37;
+        p.offerStart = block.timestamp;
+        p.offerEnd = block.timestamp + (100 * 365 days);
+        p.offerPrice = 100e18;
         p.requireTrustedBy = address(0);
-        p.oncePerUser    = false;
-        p.oncePerDay     = true;
-        p.rewardToken    = 0x2a22f9c3b484c3629090FeED35F17Ff8F88f76F0;
-        p.rewardAmount   = 5e6;
+        p.oncePerUser = false;
+        p.oncePerDay = true;
+        p.rewardToken = 0x2a22f9c3b484c3629090FeED35F17Ff8F88f76F0;
+        p.rewardAmount = 5e6;
 
         return _deploySeller(p, p.trustedAddr);
     }
@@ -427,25 +397,22 @@ contract ERC20SellerFactory {
     function createTokenOffer(SellerParams calldata p) external returns (address) {
         // copy fields
         SellerParams memory mem;
-        mem.orgName        = p.orgName;
-        mem.trustedAddr    = p.trustedAddr;
-        mem.offerStart     = (p.offerStart == 0) ? block.timestamp : p.offerStart;
-        mem.offerEnd       = (p.offerEnd == 0)   ? (block.timestamp + (100 * 365 days)) : p.offerEnd;
-        mem.offerPrice     = p.offerPrice;
+        mem.orgName = p.orgName;
+        mem.trustedAddr = p.trustedAddr;
+        mem.offerStart = (p.offerStart == 0) ? block.timestamp : p.offerStart;
+        mem.offerEnd = (p.offerEnd == 0) ? (block.timestamp + (100 * 365 days)) : p.offerEnd;
+        mem.offerPrice = p.offerPrice;
         mem.requireTrustedBy = p.requireTrustedBy;
-        mem.oncePerUser    = p.oncePerUser;
-        mem.oncePerDay     = p.oncePerDay;
-        mem.rewardToken    = p.rewardToken;
-        mem.rewardAmount   = p.rewardAmount;
+        mem.oncePerUser = p.oncePerUser;
+        mem.oncePerDay = p.oncePerDay;
+        mem.rewardToken = p.rewardToken;
+        mem.rewardAmount = p.rewardAmount;
 
         // finalOwner => msg.sender
         return _deploySeller(mem, msg.sender);
     }
 
-    function _deploySeller(SellerParams memory s, address finalOwner)
-        private
-        returns (address)
-    {
+    function _deploySeller(SellerParams memory s, address finalOwner) private returns (address) {
         ERC20SellerNoArgs seller = new ERC20SellerNoArgs();
 
         // 1) setHub => fixed
@@ -459,14 +426,7 @@ contract ERC20SellerFactory {
         seller.setTrustedAddress(s.trustedAddr, bigExpiry);
 
         // 4) configureOffer
-        seller.configureOffer(
-            s.offerStart,
-            s.offerEnd,
-            s.offerPrice,
-            s.requireTrustedBy,
-            s.oncePerUser,
-            s.oncePerDay
-        );
+        seller.configureOffer(s.offerStart, s.offerEnd, s.offerPrice, s.requireTrustedBy, s.oncePerUser, s.oncePerDay);
 
         // 5) reward
         seller.configureRewardToken(s.rewardToken, s.rewardAmount);

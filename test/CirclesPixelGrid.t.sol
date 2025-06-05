@@ -74,11 +74,15 @@ contract CirclesPixelGridTest is Test {
         assertEq(pixelGridContract.pixelsSold(), 1, "Total pixels sold should be 1");
 
         // Assert CRC transfer to owner
-        assertEq(hubMock.balances(address(pixelGridContract), CRC_TOKEN_ID), 0, "Contract CRC balance should be 0 after forwarding");
+        assertEq(
+            hubMock.balances(address(pixelGridContract), CRC_TOKEN_ID),
+            0,
+            "Contract CRC balance should be 0 after forwarding"
+        );
         assertEq(hubMock.balances(owner, CRC_TOKEN_ID), PIXEL_PRICE, "Owner should have received pixel price");
     }
 
-     function test_PurchasePixelSuccess_OverpaymentRefund() public {
+    function test_PurchasePixelSuccess_OverpaymentRefund() public {
         // Arrange
         uint256 x = 5;
         uint256 y = 5;
@@ -107,13 +111,14 @@ contract CirclesPixelGridTest is Test {
         assertEq(hubMock.balances(owner, CRC_TOKEN_ID), PIXEL_PRICE, "Owner received price");
         // Check if user1 got the refund (initial 1000 - paymentAmount + refundAmount)
         // Note: MockHub doesn't track initial balance decrease, so we check final balance vs expected refund
-        assertEq(hubMock.balances(user1, CRC_TOKEN_ID), (1000 * 1e18) - PIXEL_PRICE, "User1 balance should reflect refund");
+        assertEq(
+            hubMock.balances(user1, CRC_TOKEN_ID), (1000 * 1e18) - PIXEL_PRICE, "User1 balance should reflect refund"
+        );
         // Alternative check: Check the refund amount was transferred back
         // This requires modifying MockHub or using cheatcodes to track transfers,
         // or checking the final balance carefully. The balance check above assumes
         // the mock hub correctly handled the refund transfer back to user1.
     }
-
 
     // --- Test Purchase Failures ---
 
@@ -140,7 +145,9 @@ contract CirclesPixelGridTest is Test {
         assertEq(pixelGridContract.userPixelCount(user1), 0, "User pixel count should be 0");
         assertEq(pixelGridContract.pixelsSold(), 0, "Pixels sold should be 0");
         // Assert refund occurred (user balance should be unchanged as refund matches insufficient payment)
-        assertEq(hubMock.balances(user1, CRC_TOKEN_ID), 1000 * 1e18, "User balance should be initial amount after refund");
+        assertEq(
+            hubMock.balances(user1, CRC_TOKEN_ID), 1000 * 1e18, "User balance should be initial amount after refund"
+        );
         assertEq(hubMock.balances(address(pixelGridContract), CRC_TOKEN_ID), 0, "Contract balance should be 0");
         assertEq(hubMock.balances(owner, CRC_TOKEN_ID), 0, "Owner balance should be 0");
     }
@@ -149,15 +156,15 @@ contract CirclesPixelGridTest is Test {
         // Arrange: Buy max pixels first
         uint24 color = 0x112233;
         string memory linkUrl = "max";
-        for (uint256 i = 0; i < CirclesPixelGrid.MAX_PIXELS_PER_USER; i++) {
+        for (uint256 i = 0; i < pixelGridContract.MAX_PIXELS_PER_USER(); i++) {
             bytes memory data = abi.encode(i, 0, color, linkUrl); // Buy pixels (0,0) to (9,0)
             vm.prank(address(hubMock));
             pixelGridContract.onERC1155Received(user1, user1, CRC_TOKEN_ID, PIXEL_PRICE, data);
         }
-        assertEq(pixelGridContract.userPixelCount(user1), CirclesPixelGrid.MAX_PIXELS_PER_USER);
+        assertEq(pixelGridContract.userPixelCount(user1), pixelGridContract.MAX_PIXELS_PER_USER());
 
         // Attempt to buy one more pixel
-        uint256 x = CirclesPixelGrid.MAX_PIXELS_PER_USER; // (10, 0)
+        uint256 x = pixelGridContract.MAX_PIXELS_PER_USER(); // (10, 0)
         uint256 y = 0;
         bytes memory dataFail = abi.encode(x, y, color, linkUrl);
 
@@ -172,7 +179,7 @@ contract CirclesPixelGridTest is Test {
         // Assert: Check pixel was not assigned
         CirclesPixelGrid.PixelData memory pixelData = pixelGridContract.getPixelData(x, y);
         assertEq(pixelData.owner, address(0));
-        assertEq(pixelGridContract.pixelsSold(), CirclesPixelGrid.MAX_PIXELS_PER_USER); // Should not have increased
+        assertEq(pixelGridContract.pixelsSold(), pixelGridContract.MAX_PIXELS_PER_USER()); // Should not have increased
     }
 
     function test_PurchasePixelFail_PixelOwned() public {
@@ -218,7 +225,7 @@ contract CirclesPixelGridTest is Test {
         pixelGridContract.onERC1155Received(user1, user1, CRC_TOKEN_ID, PIXEL_PRICE, data);
     }
 
-     function test_PurchasePixelFail_NotFromHub() public {
+    function test_PurchasePixelFail_NotFromHub() public {
         // Arrange
         uint256 x = 3;
         uint256 y = 3;
