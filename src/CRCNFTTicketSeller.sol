@@ -19,7 +19,7 @@ contract CRCNFTTicketSeller {
     mapping(address => bool) private boughtTicket;
 
     address public owner;
-    IERC721 public ticketNFT;
+    IERC721 public immutable ticketNFT;
     uint256 public ticketPrice;
     uint256 public maxTickets;
     uint256 public ticketsSold;
@@ -41,6 +41,7 @@ contract CRCNFTTicketSeller {
     error ArrayLengthMismatch();
     error EmptyArraysNotAllowed();
     error WrongNFTContract();
+    error ZeroPriceNotAllowed();
 
     // EVENTS
     event SaleOpened();
@@ -58,6 +59,7 @@ contract CRCNFTTicketSeller {
     }
 
     constructor(string memory _orgName, address _nftTicket, uint256 _ticketPrice, uint256 _maxTickets) {
+        if (_ticketPrice == 0) revert ZeroPriceNotAllowed();
         owner = msg.sender;
 
         ticketNFT = IERC721(_nftTicket);
@@ -85,9 +87,10 @@ contract CRCNFTTicketSeller {
             emit SaleClosed();
         }
     }
-    // Update ticket price
 
+    // Update ticket price
     function updateTicketPrice(uint256 _newPrice) external onlyOwner {
+        if (_newPrice == 0) revert ZeroPriceNotAllowed();
         ticketPrice = _newPrice;
 
         emit TicketPriceUpdated(_newPrice);
