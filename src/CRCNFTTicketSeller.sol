@@ -109,19 +109,19 @@ contract CRCNFTTicketSeller {
     }
 
     // Owner might withdraw any ticket from the contract
-    function withdrawNFTs(uint256[] calldata tokenIds) external onlyOwner {
+    function withdrawNFTs(address recipient, uint256[] calldata tokenIds) external onlyOwner {
         for (uint256 i = 0; i < tokenIds.length; i++) {
             tickets.remove(tokenIds[i]);
-            ticketNFT.safeTransferFrom(address(this), owner, tokenIds[i]);
+            ticketNFT.safeTransferFrom(address(this), recipient, tokenIds[i]);
         }
     }
 
     // Owner might withdraw any ERC1155 token from the contract
-    function withdrawERC1155Tokens(address token, uint256[] calldata tokenIds, uint256[] calldata amounts)
+    function withdrawERC1155Tokens(address recipient, address token, uint256[] calldata tokenIds, uint256[] calldata amounts)
         external
         onlyOwner
     {
-        IERC1155(token).safeBatchTransferFrom(address(this), owner, tokenIds, amounts, "");
+        IERC1155(token).safeBatchTransferFrom(address(this), recipient, tokenIds, amounts, "");
     }
 
     function onERC1155Received(
@@ -151,6 +151,12 @@ contract CRCNFTTicketSeller {
         uint256[] calldata values,
         bytes calldata // data (unused)
     ) external returns (bytes4) {
+        // Ensure arrays have same length
+        if (ids.length != values.length) revert ArrayLengthMismatch();
+
+        // Ensure arrays are not empty
+        if (ids.length == 0) revert EmptyArraysNotAllowed();
+
         // Calculate total value sent and validate against ticket price
         uint256 totalValueSent = 0;
         for (uint256 i = 0; i < values.length; i++) {
@@ -161,12 +167,6 @@ contract CRCNFTTicketSeller {
         }
 
         _checkAcceptance(from, totalValueSent);
-
-        // Ensure arrays have same length
-        if (ids.length != values.length) revert ArrayLengthMismatch();
-
-        // Ensure arrays are not empty
-        if (ids.length == 0) revert EmptyArraysNotAllowed();
 
         // `from` is a recipient
         uint256 ticketId = _sellTicket(from);
