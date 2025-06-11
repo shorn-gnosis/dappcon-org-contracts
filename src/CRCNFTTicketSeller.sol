@@ -2,13 +2,14 @@
 pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 
 import "./interfaces/IHubV2.sol";
 import "./interfaces/INameRegistry.sol";
 
-contract CRCNFTTicketSeller {
+contract CRCNFTTicketSeller is Ownable {
     // Add the library methods for enumerable set
     using EnumerableSet for EnumerableSet.UintSet;
 
@@ -18,7 +19,6 @@ contract CRCNFTTicketSeller {
     // Accounts which purchased tickets
     mapping(address => bool) private boughtTicket;
 
-    address public owner;
     IERC721 public immutable ticketNFT;
     uint256 public ticketPrice;
     uint256 public maxTickets;
@@ -52,15 +52,10 @@ contract CRCNFTTicketSeller {
     event TicketSold(address indexed buyer, uint256 tokenId);
     event TicketAdded(uint256 indexed tokenId);
 
-    modifier onlyOwner() {
-        // @todo replace with openzeppelin Ownable
-        if (msg.sender != owner) revert NotOwner(msg.sender, owner);
-        _;
-    }
-
-    constructor(string memory _orgName, address _nftTicket, uint256 _ticketPrice, uint256 _maxTickets) {
+    constructor(string memory _orgName, address _nftTicket, uint256 _ticketPrice, uint256 _maxTickets)
+        Ownable(msg.sender)
+    {
         if (_ticketPrice == 0) revert ZeroPriceNotAllowed();
-        owner = msg.sender;
 
         ticketNFT = IERC721(_nftTicket);
         // price in CRC
@@ -117,10 +112,12 @@ contract CRCNFTTicketSeller {
     }
 
     // Owner might withdraw any ERC1155 token from the contract
-    function withdrawERC1155Tokens(address recipient, address token, uint256[] calldata tokenIds, uint256[] calldata amounts)
-        external
-        onlyOwner
-    {
+    function withdrawERC1155Tokens(
+        address recipient,
+        address token,
+        uint256[] calldata tokenIds,
+        uint256[] calldata amounts
+    ) external onlyOwner {
         IERC1155(token).safeBatchTransferFrom(address(this), recipient, tokenIds, amounts, "");
     }
 
@@ -180,7 +177,7 @@ contract CRCNFTTicketSeller {
     // @dev in order to utilize this just send NFTs to this contract
     function onERC721Received(address, address from, uint256 ticketId, bytes calldata) external returns (bytes4) {
         // Only owner might send new tickets to the contract
-        if (from != owner) revert NotOwner(from, owner);
+        if (from != owner()) revert NotOwner(from, owner());
         // Only accept valid NFT tickets
         if (msg.sender != address(ticketNFT)) revert WrongNFTContract();
 

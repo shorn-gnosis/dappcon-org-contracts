@@ -140,7 +140,7 @@ contract CRCNFTTicketSellerTest is Test {
         vm.prank(ADMIN);
         uint256[] memory ticketsToWithdraw = new uint256[](1);
         ticketsToWithdraw[0] = 999;
-        nftSellerContract.withdrawNFTs(ticketsToWithdraw);
+        nftSellerContract.withdrawNFTs(ADMIN, ticketsToWithdraw);
     }
 
     // @todo improve
@@ -163,7 +163,7 @@ contract CRCNFTTicketSellerTest is Test {
             IERC1155(address(HUB_V2)).balanceOf(address(nftSellerContract), uint256(uint160(TEST_ACCOUNT_1)));
 
         vm.prank(ADMIN);
-        nftSellerContract.withdrawERC1155Tokens(address(HUB_V2), crcIds, crcAmounts);
+        nftSellerContract.withdrawERC1155Tokens(ADMIN, address(HUB_V2), crcIds, crcAmounts);
     }
 
     // Generated tests
@@ -291,13 +291,13 @@ contract CRCNFTTicketSellerTest is Test {
 
     function test_OnlyOwnerCanToggleSale() public {
         vm.prank(TEST_ACCOUNT_1);
-        vm.expectRevert(abi.encodeWithSelector(CRCNFTTicketSeller.NotOwner.selector, TEST_ACCOUNT_1, ADMIN));
+        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, TEST_ACCOUNT_1));
         nftSellerContract.toggleSaleState();
     }
 
     function test_OnlyOwnerCanUpdatePrice() public {
         vm.prank(TEST_ACCOUNT_1);
-        vm.expectRevert(abi.encodeWithSelector(CRCNFTTicketSeller.NotOwner.selector, TEST_ACCOUNT_1, ADMIN));
+        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, TEST_ACCOUNT_1));
         nftSellerContract.updateTicketPrice(2 ether);
     }
 
@@ -310,8 +310,8 @@ contract CRCNFTTicketSellerTest is Test {
         tokenIds[0] = 10;
 
         vm.prank(TEST_ACCOUNT_1);
-        vm.expectRevert(abi.encodeWithSelector(CRCNFTTicketSeller.NotOwner.selector, TEST_ACCOUNT_1, ADMIN));
-        nftSellerContract.withdrawNFTs(tokenIds);
+        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, TEST_ACCOUNT_1));
+        nftSellerContract.withdrawNFTs(ADMIN, tokenIds);
     }
 
     function test_WithdrawNFTs() public {
@@ -332,7 +332,7 @@ contract CRCNFTTicketSellerTest is Test {
         tokenIds[1] = 12;
 
         vm.prank(ADMIN);
-        nftSellerContract.withdrawNFTs(tokenIds);
+        nftSellerContract.withdrawNFTs(ADMIN, tokenIds);
 
         assertEq(nftTickets.balanceOf(address(nftSellerContract)), 1);
         assertEq(nftTickets.balanceOf(ADMIN), 99);
