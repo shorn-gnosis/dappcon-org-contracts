@@ -18,12 +18,17 @@ contract DeployCirclesPixelGrid is Script {
         // Select Hub Address based on network (or use env var)
         // Using Gnosis Chain Hub Address
         address hub = GNOSIS_HUB_ADDRESS;
-        string memory orgName = vm.envStringOr("ORG_NAME", "Circles Pixel Grid Org"); // Default org name
+        string memory orgName = vm.envOr("ORG_NAME", string("Circles Pixel Grid Org")); // Default org name
 
         console.log("Deploying CirclesPixelGrid to Gnosis Chain...");
         console.log("  Org Name:", orgName);
         console.log("  Hub Address:", hub);
-        console.log("  Deployer:", deployerPrivateKey != 0 ? vm.addr(deployerPrivateKey) : (deployerAddress != address(0) ? deployerAddress : msg.sender));
+        console.log(
+            "  Deployer:",
+            deployerPrivateKey != 0
+                ? vm.addr(deployerPrivateKey)
+                : (deployerAddress != address(0) ? deployerAddress : msg.sender)
+        );
 
         vm.startBroadcast(deployerPrivateKey); // Use private key if provided
 

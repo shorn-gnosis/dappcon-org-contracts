@@ -8,13 +8,13 @@ contract DeployTicketSeller is Script {
     function run() external {
         // Start broadcasting transactions
         vm.startBroadcast();
-        
+        // @todo
         // Deploy with organization name and registration flag
-        CRCNFTTicketSeller ticketSeller = new CRCNFTTicketSeller("NFT Ticket Seller", true);
-        
+        //CRCNFTTicketSeller ticketSeller = new CRCNFTTicketSeller("NFT Ticket Seller", true);
+
         // Log the deployed contract address
-        console.log("CRCNFTTicketSeller deployed at:", address(ticketSeller));
-        
+        //console.log("CRCNFTTicketSeller deployed at:", address(ticketSeller));
+
         // Stop broadcasting transactions
         vm.stopBroadcast();
     }

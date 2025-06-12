@@ -9,14 +9,12 @@ import "./BackerNFTSeller.sol"; // Import the new seller contract
 struct BackerNFTSellerParams {
     string orgName;
     address trustedAddr;
-
     uint256 offerStart;
     uint256 offerEnd;
     uint256 offerPrice;
     address requireTrustedBy;
     bool oncePerUser;
     bool oncePerDay;
-
     address nftContract;
     address backerGroupAddress; // NEW: Backer group address parameter
 }
@@ -75,10 +73,7 @@ contract BackerNFTSellerFactory {
      * @param s Parameters for the Backer NFT seller
      * @param finalOwner Address that will own the deployed contract
      */
-    function _deploySeller(BackerNFTSellerParams memory s, address finalOwner)
-        private
-        returns (address)
-    {
+    function _deploySeller(BackerNFTSellerParams memory s, address finalOwner) private returns (address) {
         BackerNFTSeller seller = new BackerNFTSeller(); // Deploy the new seller type
 
         // 1) setHub => fixed
@@ -92,14 +87,7 @@ contract BackerNFTSellerFactory {
         seller.setTrustedAddress(s.trustedAddr, bigExpiry);
 
         // 4) configureOffer
-        seller.configureOffer(
-            s.offerStart,
-            s.offerEnd,
-            s.offerPrice,
-            s.requireTrustedBy,
-            s.oncePerUser,
-            s.oncePerDay
-        );
+        seller.configureOffer(s.offerStart, s.offerEnd, s.offerPrice, s.requireTrustedBy, s.oncePerUser, s.oncePerDay);
 
         // 5) configure NFT contract
         seller.configureNFTContract(s.nftContract);

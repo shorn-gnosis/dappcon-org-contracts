@@ -9,14 +9,12 @@ import "./NFTSellerNoArgs.sol";
 struct NFTSellerParams {
     string orgName;
     address trustedAddr;
-
     uint256 offerStart;
     uint256 offerEnd;
     uint256 offerPrice;
     address requireTrustedBy;
     bool oncePerUser;
     bool oncePerDay;
-
     address nftContract;
 }
 
@@ -91,10 +89,7 @@ contract NFTSellerFactory {
      * @param s Parameters for the NFT seller
      * @param finalOwner Address that will own the deployed contract
      */
-    function _deploySeller(NFTSellerParams memory s, address finalOwner)
-        private
-        returns (address)
-    {
+    function _deploySeller(NFTSellerParams memory s, address finalOwner) private returns (address) {
         NFTSellerNoArgs seller = new NFTSellerNoArgs();
 
         // 1) setHub => fixed
@@ -108,14 +103,7 @@ contract NFTSellerFactory {
         seller.setTrustedAddress(s.trustedAddr, bigExpiry);
 
         // 4) configureOffer
-        seller.configureOffer(
-            s.offerStart,
-            s.offerEnd,
-            s.offerPrice,
-            s.requireTrustedBy,
-            s.oncePerUser,
-            s.oncePerDay
-        );
+        seller.configureOffer(s.offerStart, s.offerEnd, s.offerPrice, s.requireTrustedBy, s.oncePerUser, s.oncePerDay);
 
         // 5) configure NFT contract
         seller.configureNFTContract(s.nftContract);

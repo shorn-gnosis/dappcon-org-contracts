@@ -6,13 +6,9 @@ import "forge-std/console.sol"; // For debugging during development
 /* ========== INTERFACES ========== */
 
 interface IERC1155Receiver {
-    function onERC1155Received(
-        address operator,
-        address from,
-        uint256 id,
-        uint256 value,
-        bytes calldata data
-    ) external returns (bytes4);
+    function onERC1155Received(address operator, address from, uint256 id, uint256 value, bytes calldata data)
+        external
+        returns (bytes4);
 
     function onERC1155BatchReceived(
         address operator,
@@ -28,13 +24,7 @@ interface IERC165 {
 }
 
 interface IERC1155 {
-    function safeTransferFrom(
-        address from,
-        address to,
-        uint256 id,
-        uint256 amount,
-        bytes calldata data
-    ) external;
+    function safeTransferFrom(address from, address to, uint256 id, uint256 amount, bytes calldata data) external;
 }
 
 interface IHub {
@@ -83,34 +73,20 @@ contract CirclesPixelGrid is IERC1155Receiver, IERC165 {
     /// @notice Represents the data associated with a single pixel.
     struct PixelData {
         address owner; // Address(0) if unowned
-        uint24 color;  // RGB color (e.g., 0xFF0000 for red)
+        uint24 color; // RGB color (e.g., 0xFF0000 for red)
         string linkUrl; // Optional URL associated with the pixel
     }
 
     // ---------- Events ----------
 
     /// @notice Emitted when a pixel is successfully purchased.
-    event PixelPurchased(
-        address indexed buyer,
-        uint256 pixelId,
-        uint256 x,
-        uint256 y,
-        uint24 color,
-        string linkUrl
-    );
+    event PixelPurchased(address indexed buyer, uint256 pixelId, uint256 x, uint256 y, uint24 color, string linkUrl);
 
     /// @notice Emitted when a CRC payment is refunded due to an invalid purchase attempt.
     event CRCRefunded(address indexed buyer, uint256 amount, string reason);
 
     /// @notice Emitted when a pixel's metadata (color, link) is updated by its owner.
-    event PixelUpdated(
-        address indexed owner,
-        uint256 pixelId,
-        uint256 x,
-        uint256 y,
-        uint24 color,
-        string linkUrl
-    );
+    event PixelUpdated(address indexed owner, uint256 pixelId, uint256 x, uint256 y, uint24 color, string linkUrl);
 
     // ---------- Constructor ----------
 
@@ -146,23 +122,19 @@ contract CirclesPixelGrid is IERC1155Receiver, IERC165 {
      * @param _data Encoded data containing purchase details: (uint256 x, uint256 y, uint24 color, string linkUrl).
      * @return `IERC1155Receiver.onERC1155Received.selector`.
      */
-    function onERC1155Received(
-        address _operator,
-        address _from,
-        uint256 _id,
-        uint256 _value,
-        bytes calldata _data
-    ) external override returns (bytes4) {
+    function onERC1155Received(address _operator, address _from, uint256 _id, uint256 _value, bytes calldata _data)
+        external
+        override
+        returns (bytes4)
+    {
         // 1. Basic Checks
         require(msg.sender == hubAddress, "PixelGrid: Not from Hub");
         require(isRegistered, "PixelGrid: Org not registered");
         require(pixelsSold < TOTAL_PIXELS, "PixelGrid: Sold out");
 
         // 2. Decode Purchase Data
-        (uint256 x, uint256 y, uint24 color, string memory linkUrl) = abi.decode(
-            _data,
-            (uint256, uint256, uint24, string)
-        );
+        (uint256 x, uint256 y, uint24 color, string memory linkUrl) =
+            abi.decode(_data, (uint256, uint256, uint24, string));
 
         // 3. Validate Purchase Parameters
         require(x < GRID_SIZE && y < GRID_SIZE, "PixelGrid: Invalid coordinates");
@@ -195,17 +167,11 @@ contract CirclesPixelGrid is IERC1155Receiver, IERC165 {
 
         // 7. Forward Payment to Owner (transfer only the PIXEL_PRICE)
         // Note: Assumes the Hub contract allows transferring from this contract
-        IERC1155(hubAddress).safeTransferFrom(
-            address(this),
-            owner,
-            _id,
-            PIXEL_PRICE,
-            ""
-        );
+        IERC1155(hubAddress).safeTransferFrom(address(this), owner, _id, PIXEL_PRICE, "");
 
         // 8. Handle potential refund for overpayment (optional, could let owner keep extra)
         if (_value > PIXEL_PRICE) {
-             IERC1155(hubAddress).safeTransferFrom(
+            IERC1155(hubAddress).safeTransferFrom(
                 address(this),
                 _from, // Send excess back to buyer
                 _id,
@@ -221,13 +187,12 @@ contract CirclesPixelGrid is IERC1155Receiver, IERC165 {
     /**
      * @notice Rejects batch transfers as pixel purchases are individual.
      */
-    function onERC1155BatchReceived(
-        address,
-        address,
-        uint256[] calldata,
-        uint256[] calldata,
-        bytes calldata
-    ) external pure override returns (bytes4) {
+    function onERC1155BatchReceived(address, address, uint256[] calldata, uint256[] calldata, bytes calldata)
+        external
+        pure
+        override
+        returns (bytes4)
+    {
         revert("PixelGrid: Batch transfers not supported");
     }
 
@@ -269,7 +234,7 @@ contract CirclesPixelGrid is IERC1155Receiver, IERC165 {
         return pixels[pixelId];
     }
 
-     /**
+    /**
      * @notice Gets the number of pixels purchased by a specific user.
      * @param user The address of the user.
      * @return uint256 The number of pixels owned by the user.
@@ -299,16 +264,9 @@ contract CirclesPixelGrid is IERC1155Receiver, IERC165 {
      * @dev Internal function to handle refunding CRC tokens via the Hub.
      */
     function _refund(address _to, uint256 _id, uint256 _value, string memory _reason) internal {
-         IERC1155(hubAddress).safeTransferFrom(
-            address(this),
-            _to,
-            _id,
-            _value,
-            ""
-        );
+        IERC1155(hubAddress).safeTransferFrom(address(this), _to, _id, _value, "");
         emit CRCRefunded(_to, _value, _reason);
     }
-
 
     // ---------- ERC165 ----------
 
@@ -316,9 +274,7 @@ contract CirclesPixelGrid is IERC1155Receiver, IERC165 {
      * @notice Indicates support for ERC165 and IERC1155Receiver interfaces.
      */
     function supportsInterface(bytes4 interfaceId) external pure override returns (bool) {
-        return
-            interfaceId == type(IERC1155Receiver).interfaceId ||
-            interfaceId == type(IERC165).interfaceId;
+        return interfaceId == type(IERC1155Receiver).interfaceId || interfaceId == type(IERC165).interfaceId;
     }
 
     // ---------- Owner Functions ----------
@@ -332,23 +288,23 @@ contract CirclesPixelGrid is IERC1155Receiver, IERC165 {
         owner = newOwner;
     }
 
-     /**
-      * @notice Allows the owner to update the organization name if registration failed initially or needs changing.
-      * @param _newOrgName The new name for the organization.
-      */
-     function updateOrgName(string memory _newOrgName) external onlyOwner {
-         orgName = _newOrgName;
-         // Optionally, attempt re-registration if not already registered
-         if (!isRegistered) {
-             _registerOrg();
-         }
-     }
+    /**
+     * @notice Allows the owner to update the organization name if registration failed initially or needs changing.
+     * @param _newOrgName The new name for the organization.
+     */
+    function updateOrgName(string memory _newOrgName) external onlyOwner {
+        orgName = _newOrgName;
+        // Optionally, attempt re-registration if not already registered
+        if (!isRegistered) {
+            _registerOrg();
+        }
+    }
 
-     /**
-      * @notice Allows the owner to attempt organization registration again if it failed initially.
-      */
-     function retryRegisterOrg() external onlyOwner {
-         require(!isRegistered, "PixelGrid: Already registered");
-         _registerOrg();
-     }
+    /**
+     * @notice Allows the owner to attempt organization registration again if it failed initially.
+     */
+    function retryRegisterOrg() external onlyOwner {
+        require(!isRegistered, "PixelGrid: Already registered");
+        _registerOrg();
+    }
 }
