@@ -174,10 +174,14 @@ contract CRCNFTTicketSeller is Ownable {
         return this.onERC1155BatchReceived.selector;
     }
 
+    function depositNFT(uint256 ticketId) external {
+        ticketNFT.safeTransferFrom(msg.sender, address(this), ticketId);
+    }
+
     // @dev in order to utilize this just send NFTs to this contract
-    function onERC721Received(address, address from, uint256 ticketId, bytes calldata) external returns (bytes4) {
+    function onERC721Received(address, address, uint256 ticketId, bytes calldata) external returns (bytes4) {
         // Only owner might send new tickets to the contract
-        if (from != owner()) revert NotOwner(from, owner());
+        //if (from != owner()) revert NotOwner(from, owner());
         // Only accept valid NFT tickets
         if (msg.sender != address(ticketNFT)) revert WrongNFTContract();
 
@@ -234,7 +238,7 @@ contract CRCNFTTicketSeller is Ownable {
         if (ticketsSold >= maxTickets || tickets.length() == 0) revert NoTicketsAvailable();
 
         // Validate total sent value equals expected ticket price
-        if (_paidAmount != ticketPrice) revert WrongPaidAmount(_paidAmount, ticketPrice);
+        if (_paidAmount < ticketPrice) revert WrongPaidAmount(_paidAmount, ticketPrice);
     }
 
     function _sellTicket(address _recipient) private returns (uint256 soldTicketId) {
